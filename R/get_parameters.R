@@ -75,10 +75,10 @@ get_variant_params <- function(param_file, daily_import=0,
 
 
 get_age_groups <- function(){
-  ## fhidata::norway_population_by_age_cats(cats = list(c(1:10), c(11:20), c(21:30), c(31:40),
+  ## spldata::norway_population_by_age_cats(cats = list(c(1:10), c(11:20), c(21:30), c(31:40),
   ##                                                    c(41:50), c(51:60), c(61:70), c(71:80), c(80:120))) %>% dplyr::filter(year==2022 & location_code=="norge") %>% pull(pop)
 
-  fhidata::norway_population_b2020 %>% dplyr::filter(year==2022 & location_code=="norge")%>% mutate(age_gr=cut(age, breaks=c(-1,9,19,29,39,49,59,69,79,120))) %>% group_by(age_gr) %>% summarize(pop=sum(pop))%>%pull(pop)
+  spldata::norway_population_b2020 %>% dplyr::filter(year==2022 & location_code=="norge")%>% mutate(age_gr=cut(age, breaks=c(-1,9,19,29,39,49,59,69,79,120))) %>% group_by(age_gr) %>% summarize(pop=sum(pop))%>%pull(pop)
 }
 
 get_vac_hist_sysvak <- function(filename, reg_data, start_date, L){
@@ -387,7 +387,7 @@ get_regional_data <- function(regional_file, regions="prior_0"){
                                 name:=paste(prior_0, fylke))
 
   pop <- reg_dat %>%
-    right_join(fhidata::norway_population_b2020 %>%
+    right_join(spldata::norway_population_b2020 %>%
                dplyr::filter(year==2022 & granularity_geo=="municip") %>%
                mutate(age_gr=cut(age, breaks=c(-1,9,19,29,39,49,59,69,79,120))) %>%
                group_by(location_code, age_gr) %>% summarize(pop=sum(pop)),
@@ -396,7 +396,7 @@ get_regional_data <- function(regional_file, regions="prior_0"){
 
 
   pop18p <- reg_dat %>%
-    right_join(fhidata::norway_population_b2020 %>%
+    right_join(spldata::norway_population_b2020 %>%
                dplyr::filter(year==2022 & granularity_geo=="municip") %>%
                filter(age>=18) %>%
                group_by(location_code) %>% summarize(pop=sum(pop)),

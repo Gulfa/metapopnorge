@@ -617,7 +617,7 @@ find_regions_to_vaccinate <- function(scenarios){
       regs <- apply(params$vaccinated1, 1 ,sum) > 1
 
       print(paste(scenario$name, scenario$doses, sum(params$vaccinated1)))
-      d <- fhidata::norway_locations_long_b2020[granularity_geo=="county"][regs, location_code]
+      d <- spldata::norway_locations_long_b2020[granularity_geo=="county"][regs, location_code]
       prios[[i]] <- list(name=scenario$name,
                          regions=paste(d, collapse=","))
       i <- i+1
