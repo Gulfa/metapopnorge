@@ -384,7 +384,7 @@ get_regional_data <- function(regional_file, regions="prior_0"){
   reg_dat <- fread(regional_file)
   colnames(reg_dat) <- c("fhidata.municip_code", "fhidata.municip_name","value", "prior_0")
   reg_dat <- reg_dat %>% mutate(fylke=substr(fhidata.municip_code, 8,9),
-                                name:=paste(prior_0, fylke))
+                                name:=paste(prior_0))
 
   pop_data <- spldata::nor_population_by_age_cats(cats=list("1"=-1:9, "2"=10:19, "3"=20:29, "4"=30:39,
                                                             "5"=40:49, "6"=50:59, "7"=60:69, "8"=70:79, "9"=80:120),
@@ -407,7 +407,7 @@ get_regional_data <- function(regional_file, regions="prior_0"){
     group_by(name) %>% summarize(pop=sum(pop))
 
   
-  f <- reg_dat %>% group_by(name,prior_0) %>% summarize(municips=paste(fhidata.municip_code, collapse=","), R_value=mean(value)) %>%ungroup()
+  f <- reg_dat %>% group_by(prior_0) %>% summarize(municips=paste(fhidata.municip_code, collapse=","), R_value=mean(value)) %>%ungroup()
   f <- f %>% mutate(reg_number=1:nrow(f))
   
 
