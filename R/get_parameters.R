@@ -34,7 +34,7 @@ get_variant_params <- function(param_file, daily_import=0,
                 cross_protection=matrix(1, ncol=n_strain, nrow=n_strain),
                 n=9,
                 S_ini=matrix(c(get_age_groups(), get_age_groups()*0), nrow=N, ncol=n_vac),
-                import_vec=array(5, dim=c(L,N, n_vac, n_strain)),
+                import_vec=array(0, dim=c(L,N, n_vac, n_strain)),
                 I_ini=array(20, dim=c(N,n_vac,n_strain)),
                 I_imp_ini=array(0, dim=c(N,n_vac,n_strain)),
                 Ea_ini=array(0, dim=c(N,n_vac,n_strain)),
@@ -65,7 +65,7 @@ get_variant_params <- function(param_file, daily_import=0,
               )
   
   
-  params$import_vec[1:L, 1:7, 2, 1] <- daily_import/7
+  params$import_vec[1:L, 1:7, 2, 1] <- round(daily_import/7)
   basic_params <- fix_params(params, N, n_vac, n_strain, vac_pars)
 
 
