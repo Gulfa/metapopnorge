@@ -65,7 +65,7 @@ get_variant_params <- function(param_file, daily_import=0,
               )
   
   
-  params$import_vec[1:L, 1:7, 2, 1] <- round(daily_import/7)
+  params$import_vec[1:L, 1:7, 1, 1] <- round(daily_import/7)
   basic_params <- fix_params(params, N, n_vac, n_strain, vac_pars)
 
 
@@ -297,7 +297,11 @@ get_vac_params_old <- function(vaccine_file, dose_file){
   VE_death_conditional_1 <- (1 - di[["VACCINE_EFF_1ST_1_D"]])/(1  -di[["VACCINE_EFF_1ST_1_I"]] )
   VE_death_conditional_2 <- (1 - di[["VACCINE_EFF_2ND_1_D"]])/(1  -di[["VACCINE_EFF_2ND_1_I"]] )
 
-  v_doses <- fread(dose_file)
+  if(!is.null(dose_file) & ! dose_file==""){
+    v_doses <- fread(dose_file)
+  }else{
+    v_doses = list(vac_1=rep(0, 500))
+  }
   vac_pars <- list(rr_inf = c(1, 1-di[["VACCINE_EFF_1ST_1_I"]], 1-di[["VACCINE_EFF_2ND_1_I"]]),
                    rr_inf_asymp = c(1,1-di[["VACCINE_EFF_1ST_1_Ia"]],
                                     1- di[["VACCINE_EFF_2ND_1_Ia"]]),
