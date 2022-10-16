@@ -387,8 +387,21 @@ get_regional_data <- function(regional_file, regions="prior_0"){
 
   reg_dat <- fread(regional_file)
   colnames(reg_dat) <- c("fhidata.municip_code", "fhidata.municip_name","value", "prior_0")
+
+  regions = list()
   reg_dat <- reg_dat %>% mutate(fylke=substr(fhidata.municip_code, 8,9),
-                                name:=paste(fylke, prior_0))
+                                region=recode(fylke, "03"= "Ost",
+                                              "30"= "Ost",
+                                              "34"= "Ost",
+                                              "38"= "Ost",
+                                              "54"= "Nord",
+                                              "18"= "Nord",
+                                              "50"= "Trond",
+                                              "15"= "Vest",
+                                              "46"= "Vest",
+                                              "11"= "Vest",
+                                              "42"= "Agder"),
+                                name:=paste(region, prior_0))
 
   pop_data <- spldata::nor_population_by_age_cats(cats=list("1"=-1:9, "2"=10:19, "3"=20:29, "4"=30:39,
                                                             "5"=40:49, "6"=50:59, "7"=60:69, "8"=70:79, "9"=80:120),
