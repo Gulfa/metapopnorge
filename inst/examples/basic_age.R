@@ -60,7 +60,6 @@ basic_params <- list(
   P_ini=array(0, dim=c(N,n_vac,n_strain)),
   H_ini=array(0, dim=c(N,n_vac,n_strain)),
   ICU_H_ini=array(0, dim=c(N,n_vac,n_strain)),
-  
   ICU_R_ini=array(0, dim=c(N,n_vac,n_strain)),
   ICU_P_ini=array(0, dim=c(N,n_vac,n_strain)),
   B_D_ini=array(0, dim=c(N,n_vac,n_strain)),
@@ -98,15 +97,15 @@ ggplot(results) + geom_line(aes(x=t, y=incidence, group=sim))
 ## Using convenience functions in metapopnorge
 
 
-param_file <- "parameters_example.xlsx"
+param_file <- "parameter_files/parameters_example.xlsx"
 #Vaccination RRs for unvaccinated and vaccinated
 vac_pars <- list(rr_inf = c(1,0.7),
-              rr_hosp = c(1, 0.6),
-              rr_death = c(1, 0.6),
-              rr_icu = c(1, 0.6),
-              rr_los_hosp = c(1, 0.85),
-              rr_inf_asymp = c(1,0.8),
-              rr_trans = c(1,1))
+                 rr_hosp = c(1, 0.6),
+                 rr_death = c(1, 0.6),
+                 rr_icu = c(1, 0.6),
+                 rr_los_hosp = c(1, 0.85),
+                 rr_inf_asymp = c(1,0.8),
+                 rr_trans = c(1,1))
 
 
 new_params <- get_variant_params(param_file, vac_pars=vac_pars)
