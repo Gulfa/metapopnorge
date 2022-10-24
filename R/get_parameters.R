@@ -73,7 +73,7 @@ get_variant_params <- function(param_file, daily_import=0,
 
 }
 
-
+#' @export
 get_age_groups <- function(){
   ## spldata::norway_population_by_age_cats(cats = list(c(1:10), c(11:20), c(21:30), c(31:40),
   ##                                                    c(41:50), c(51:60), c(61:70), c(71:80), c(80:120))) %>% dplyr::filter(year==2022 & location_code=="norge") %>% pull(pop)
@@ -122,7 +122,7 @@ get_seas <- function(index_date, L){
  return(seas[1:L]) 
 }
 
-
+#' @export
 read_param_file_simplified <- function(param_file){
   par <- readxl::read_excel(param_file)
   
@@ -401,7 +401,7 @@ get_regional_data <- function(regional_file, regions="prior_0"){
                                               "46"= "Vest",
                                               "11"= "Vest",
                                               "42"= "Agder"),
-                                name:=paste(region, prior_0))
+                                name:=paste(fylke, prior_0))
 
   pop_data <- spldata::nor_population_by_age_cats(cats=list("1"=-1:9, "2"=10:19, "3"=20:29, "4"=30:39,
                                                             "5"=40:49, "6"=50:59, "7"=60:69, "8"=70:79, "9"=80:120),
@@ -424,7 +424,8 @@ get_regional_data <- function(regional_file, regions="prior_0"){
     group_by(name) %>% summarize(pop=sum(pop))
 
   
-  f <- reg_dat %>% group_by(name, prior_0) %>% summarize(municips=paste(fhidata.municip_code, collapse=","), R_value=mean(value)) %>%ungroup()
+  f <- reg_dat %>% right_join(pop_data %>% group_by(location_code) %>% summarize(pop=sum(pop)), by=c("fhidata.municip_code"="location_code")) %>%
+    group_by(name, prior_0) %>% summarize(municips=paste(fhidata.municip_code, collapse=","), R_value=sum(pop*value)/sum(pop)) %>%ungroup()
   f <- f %>% mutate(reg_number=1:nrow(f))
   
 
