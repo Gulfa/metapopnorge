@@ -54,6 +54,7 @@ get_variant_params <- function(param_file, daily_import=0,
                 tot_hosp_ini=array(0, dim=c(N,n_vac,n_strain)),
                 tot_resp_ini=array(0, dim=c(N,n_vac,n_strain)),
                 tot_vac_ini=array(0, dim=c(N, n_vac)),
+                tot_vac_adm_ini=array(0, dim=c(N, n_vac)),
                 beta_norm=get_age_groups(),
                 reg_pop_long=get_age_groups(),
                 N_regions=1,
@@ -77,11 +78,13 @@ get_variant_params <- function(param_file, daily_import=0,
 get_age_groups <- function(){
   ## spldata::norway_population_by_age_cats(cats = list(c(1:10), c(11:20), c(21:30), c(31:40),
   ##                                                    c(41:50), c(51:60), c(61:70), c(71:80), c(80:120))) %>% dplyr::filter(year==2022 & location_code=="norge") %>% pull(pop)
-  spldata::nor_population_by_age_cats(cats=list("1"=-1:9, "2"=10:19, "3"=20:29, "4"=30:39, "5"=40:49, "6"=50:59, "7"=60:69, "8"=70:79, "9"=80:120),
-                                       border=2020, include_total=FALSE) %>% filter(calyear==2022 & location_code=="norge")%>%pull(pop_jan1_n)
+  #spldata::nor_population_by_age_cats(cats=list("1"=-1:9, "2"=10:19, "3"=20:29, "4"=30:39, "5"=40:49, "6"=50:59, "7"=60:69, "8"=70:79, "9"=80:120),
+                                        #                                    border=2020, include_total=FALSE) %>% filter(calyear==2022 & location_code=="norge")%>%pull(pop_jan1_n)
+  return(c(587714,647020,701583,749122,714233,724859,596118,464328,240293))
+
 }
 
-get_vac_hist_sysvak <- function(filename, reg_data, start_date, L){
+get_vac_hist_sysvak <- function(filename, reg_data, start_date, L, vac_adherence=NULL){
   sysvak_data <- fread(filename)
   sysvak_data$date_vax <- as.Date(sysvak_data$date_vax)
   dat <- sysvak_data %>% left_join(reg_data$reg_spec_municip, by=c("municip_code"="fhidata.municip_code")) %>%
@@ -93,6 +96,15 @@ get_vac_hist_sysvak <- function(filename, reg_data, start_date, L){
   final_df <- skeleton %>% left_join(dat, on=c("date_vax"="date_vax", "name"="name", "aldersgruppe"="aldersgruppe", "risikogruppe"="risikogrupp")) %>% mutate(n=tidyr::replace_na(n, 0)) %>% arrange(date_vax, name, risikogruppe,  aldersgruppe)
 
   m <- matrix(final_df %>% pull(n), nrow=L, byrow=TRUE)
+  
+  if(!is.null(vac_adherence)){
+    max_doses_to_give <- rep(vac_adherence$adherence, reg_data$N_regions) * reg_data$pop
+    max_doses_matrix <- matrix(max_doses_to_give, nrow=L, ncol=length(max_doses_to_give), byrow=T)
+    doses_given <- matrixStats::colCumsums(m)
+    mask <- doses_given > max_doses_matrix
+    m[mask] <- 0
+  }
+  
   return(m)
 }
 
@@ -606,6 +618,7 @@ get_params <- function(
                 tot_hosp_ini=array(0, dim=c(N,n_vac,n_strain)),
                 tot_resp_ini=array(0, dim=c(N,n_vac,n_strain)),
                 tot_vac_ini=array(0, dim=c(N, n_vac)),
+                tot_vac_adm_ini=array(0, dim=c(N, n_vac)),
                 beta_norm=reg_data$pop,
                 reg_pop_long=reg_data$pop,
                 N_regions=reg_data$N_regions,
@@ -622,9 +635,9 @@ get_params <- function(
   params$reg_pop <- reg_data$reg_pop
   
   if(!is.null(vac_priority)){
-
+    adherence <- get_vac_adherence(vac_priority$adherence)
     if(vac_priority$type == "history"){
-      vac <- get_vac_hist_sysvak(vac_priority$filename, reg_data, vac_priority$start_date, L)
+      vac <- get_vac_hist_sysvak(vac_priority$filename, reg_data, vac_priority$start_date, L, vac_adherence = adherence)
       params$vaccinations  <- vac_mat_to_vac_par(vac_pars, vac)[1:L,,]
     }else if(vac_priority$type == "scenario"){
       params$reg_prio = reg_data$reg_spec %>% filter(prior_0==1) %>%pull(reg_number)
@@ -635,7 +648,7 @@ get_params <- function(
       params$start_day_prio <- vac_priority$start_day
       params$doses_per_day <- vac_pars$vac_doses
       params$already_vaccinated <- rep(0, N_age)
-      adherence <- get_vac_adherence(vac_priority$adherence)
+     
       params$adherence <- adherence$adherence
       params$adherence_hospital <- adherence$adherence_hosp
       vac <- create_vaccination_strategy_reg(params, vac_priority$file)$vac_1
@@ -693,7 +706,7 @@ vac_mat_to_vac_par <- function(vac_pars, vac){
   vac_delay <- round(rbind(matrix(0, nrow=round(vac_pars$ramp_up_time/2), ncol=dim(vac)[2]), vac)[1:dim(vac)[1],])
   vac_dose_2 <- round(rbind(matrix(0, nrow=vac_pars$ramp_up_time + vac_pars$time_dose_2, ncol=dim(vac)[2]), vac)[1:dim(vac)[1],])
   vaccinations=array(0,dim=c(dim(vac)[1], dim(vac)[2], 3))
-  vaccinations[,,1] <-- vac_delay
+  vaccinations[,,1] <- - vac_delay
   vaccinations[,,2] <-  vac_delay - vac_dose_2
   vaccinations[,,3] <- vac_dose_2
   return(vaccinations)
