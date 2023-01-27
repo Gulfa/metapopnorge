@@ -323,8 +323,9 @@ create_vaccination_strategy_reg  <- function(params, priority_file){
               )
     
     daily_doses_1_reg <-daily_doses_1*f_ar
-    
-    final_day <- min((1:L)[cumsum(daily_doses_1_reg)>tot_doses_1], na.rm=T)
+    #print(tot_doses_1)
+    #print(cumsum(daily_doses_1_reg)>tot_doses_1)
+    final_day <- min(c(L+1, (1:L)[cumsum(daily_doses_1_reg)>tot_doses_1]), na.rm=T)
     final_days <- c(final_days, final_day)
   }
   
