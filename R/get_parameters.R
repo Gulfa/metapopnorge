@@ -11,10 +11,9 @@ get_variant_params <- function(param_file, daily_import=0,
                                              rr_icu = c(1, 0.6),
                                              rr_los_hosp = c(1, 0.85),
                                              rr_inf_asymp = c(1,0.8),
-                                             rr_trans = c(1,1))) {
+                                             rr_trans = c(1,1)), L=500) {
 
   params <- read_param_file_simplified(param_file)
-  L <- 500
   n_vac <- 2
   n_strain <- 1
   N <- 9
@@ -58,20 +57,16 @@ get_variant_params <- function(param_file, daily_import=0,
                 beta_norm=get_age_groups(),
                 reg_pop_long=get_age_groups(),
                 N_regions=1,
-                waning_immunity_vax = array(1000, dim=c(N,n_vac,n_strain)),
-                waning_inf = 1000,
+                waning_immunity_vax = array(100000, dim=c(N,n_vac,n_strain)),
+                waning_inf = 100000,
                 age_groups=N,
                 beta_mode=1
               )
               )
-  
+  params$I_ini[,2,] <- 0
   
   params$import_vec[1:L, 1:7, 1, 1] <- round(daily_import/7)
   basic_params <- fix_params(params, N, n_vac, n_strain, vac_pars)
-
-
-
-
 }
 
 #' @export
