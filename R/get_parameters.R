@@ -85,13 +85,9 @@ get_vac_hist_sysvak <- function(filename, reg_data, start_date, L, vac_adherence
   dat <- sysvak_data %>% left_join(reg_data$reg_spec_municip, by=c("municip_code"="fhidata.municip_code")) %>%
     mutate(risikogruppe=replace(risikogruppe, risikogruppe > 1, 1)) %>%
     group_by(date_vax, aldersgruppe, risikogruppe, name) %>% summarize(n=sum(n)) %>% filter(date_vax >= start_date & date_vax < start_date + L & !is.na(name))
-
-  skeleton <- expand.grid(date_vax=seq(min(dat$date_vax), max(dat$date_vax), by=1), name=unique(dat$name), aldersgruppe=unique(dat$aldersgruppe), risikogruppe=unique(dat$risikogruppe))
-
-  final_df <- skeleton %>% left_join(dat, on=c("date_vax"="date_vax", "name"="name", "aldersgruppe"="aldersgruppe", "risikogruppe"="risikogrupp")) %>% mutate(n=tidyr::replace_na(n, 0)) %>% arrange(date_vax, name, risikogruppe,  aldersgruppe)
-
+  skeleton <- expand.grid(date_vax=seq(min(dat$date_vax), max(dat$date_vax), by=1), name=unique(dat$name), aldersgruppe=1:9, risikogruppe=unique(dat$risikogruppe))
+  final_df <- skeleton %>% left_join(dat, by=c("date_vax"="date_vax", "name"="name", "aldersgruppe"="aldersgruppe", "risikogruppe"="risikogruppe")) %>% mutate(n=tidyr::replace_na(n, 0)) %>% arrange(date_vax, name, risikogruppe,  aldersgruppe)
   m <- matrix(final_df %>% pull(n), nrow=L, byrow=TRUE)
-  
   if(!is.null(vac_adherence)){
     max_doses_to_give <- rep(vac_adherence$adherence, reg_data$N_regions) * reg_data$pop
     max_doses_matrix <- matrix(max_doses_to_give, nrow=L, ncol=length(max_doses_to_give), byrow=T)
@@ -99,12 +95,12 @@ get_vac_hist_sysvak <- function(filename, reg_data, start_date, L, vac_adherence
     mask <- doses_given > max_doses_matrix
     m[mask] <- 0
   }
-  
   return(m)
+
 }
 
 
-get_S_ini <- function(filename, start_date, n_strian){
+get_S_ini <- function(filename, start_date, n_strain){
   sysvak_data <- fread(filename)
   
   sysvak_data <- tidyr::complete(sysvak_data, age_group, dosenummer, date_vax, fill=list(n=0))
